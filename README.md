@@ -79,4 +79,4 @@ docker logs --since 1m supabase-rest   # 找 "Config reloaded" 行
 ```
 
 ---
-材料与出处：本部署 = docker-compose（postgrest/postgrest:v14.18 + PG 17.6）；PG 源码 guc.c（REL_17_STABLE）；PostgREST 源码 Config/Database.hs。全部结论先实测后入档，验证脚本与源码存档见主文档《整体架构与源码导读》§14.8。
+材料与出处：本部署 = docker-compose（postgrest/postgrest:v14.18 + PG 17.6）。**引用的全部源码快照随仓库提供（`evidence/` 目录，行号可直接核对）**——guc.c、user.c（PostgreSQL REL_17_STABLE，PostgreSQL License）、Database.hs（PostgREST v14.18，MIT），出处与许可证见 [evidence/SOURCES.md](evidence/SOURCES.md)。全部结论先实测后入档。
