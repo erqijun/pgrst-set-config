@@ -112,6 +112,10 @@ $$;
 
 ALTER FUNCTION extensions.auto_register_schema() OWNER TO supabase_admin;
 
+-- 纵深防御：直调已被返回类型（event_trigger 伪类型）在语义层封死，
+-- 这里再显式撤掉 PUBLIC 的 EXECUTE（实测 REVOKE 后触发器照常发火——发火不查函数 ACL）
+REVOKE EXECUTE ON FUNCTION extensions.auto_register_schema() FROM PUBLIC;
+
 -- 事件触发器（创建需要超管——与平台的 pgrst_ddl_watch 同理）
 CREATE EVENT TRIGGER pgrst_auto_schema_register
 ON ddl_command_end
