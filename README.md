@@ -78,5 +78,14 @@ ALTER ROLE authenticator RESET pgrst.db_schemas;                  -- 删除（�
 docker logs --since 1m supabase-rest   # 找 "Config reloaded" 行
 ```
 
+## 配套实现
+
+| 文件 | 用途 |
+|---|---|
+| [docs/auto-register.md](docs/auto-register.md) | **自动注册触发器落地指南**（建 tenant_* schema 自动进名单+热加载，含防注入三层与验证步骤）|
+| [sql/auto_register_schema.sql](sql/auto_register_schema.sql) | 触发器实现（含防注入注释与卸载命令）|
+| [sql/attack_test.sql](sql/attack_test.sql) | 注入验证载荷（逗号语义注入 + SQL 注入）|
+| [sql/attack_cleanup.sql](sql/attack_cleanup.sql) | 验证后清理脚本 |
+
 ---
 材料与出处：本部署 = docker-compose（postgrest/postgrest:v14.18 + PG 17.6）。**引用的全部源码快照随仓库提供（`evidence/` 目录，行号可直接核对）**——guc.c、user.c（PostgreSQL REL_17_STABLE，PostgreSQL License）、Database.hs（PostgREST v14.18，MIT），出处与许可证见 [evidence/SOURCES.md](evidence/SOURCES.md)。全部结论先实测后入档。
