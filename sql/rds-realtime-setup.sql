@@ -1,0 +1,34 @@
+-- ============================================================
+-- RDS 模式：realtime 前置配方（2026-11-21 vanilla PG 端到端实测）
+-- 
+-- 结论：realtime 可完整运行在 RDS 上（Tenant set-up successfully
+--       + healthy:true + WS 广播双客户端端到端），需以下前置：
+--
+-- Provider 工单（超管，一次性）：
+--   ① GRANT SET ON PARAMETER log_min_messages TO root;
+--      （租户迁移的 list_changes 函数内 SET log_min_messages 'fatal'，
+--        SUSET 参数；README 明言 "Realtime needs a superuser" 的唯一原因）
+--   ② GRANT SET ON PARAMETER log_min_messages TO supabase_realtime_admin;
+--      （同款授权给 realtime 的管理角色）
+--
+-- root（平台管道，一次性）：
+--   ③ CREATE ROLE supabase_realtime_admin NOLOGIN NOINHERIT;
+--      CREATE ROLE supabase_admin NOLOGIN NOINHERIT;
+--      CREATE ROLE dashboard_user NOLOGIN;
+--      GRANT supabase_realtime_admin, supabase_admin TO root;
+--      （租户迁移 dump 引用这三个角色——不存在即 42704；
+--        vanilla PG 无 supautils，root 可直接建——主栈反而做不到）
+--   ④ CREATE SCHEMA _realtime; CREATE SCHEMA realtime;（迁移目标 schema）
+--
+-- 容器 env（相对主栈的差异项）：
+--   DB_HOST/DB_NAME/DB_USER/DB_PASSWORD  -> 指向 RDS
+--   SELF_HOST_TENANT_DB_HOST=rds-pg      -> 租户 CDC 连本库（默认 host.docker.internal:5433 会超时）
+--   SELF_HOST_TENANT_DB_PORT=5432
+--   API_JWT_JWKS 不传（seeds.exs 的 Jason.decode! 对 env 复制值会炸；不传即跳过）
+--   SEED_SELF_HOST=true
+--
+-- 客户端连接要点：
+--   WS 端点 = /socket/websocket（Phoenix 挂载约定；envoy 网关做 prefix_rewrite）
+--   tenant 从 Host 头第一段解析（realtime-dev.xxx）
+--   实测：A 客户端 broadcast -> B 客户端收到，完整链路通
+-- ============================================================
